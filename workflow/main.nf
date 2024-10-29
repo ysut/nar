@@ -4,10 +4,8 @@ nextflow.enable.dsl=2
 
 params.input_vcf = ''
 
-
 process SPLICEAI {
     container 'betelgeuse:5000/library/utsu/spliceai:1.3.1'
-    // containerOptions '-u 0 --security-opt seccomp=unconfined'
     
     input:
         tuple path(input_vcf), path(input_tbi), path(reference_fasta), path(annotation_gtf)
@@ -51,21 +49,16 @@ process VEP {
       --variant_class \\
       --canonical \\
       --symbol \\
-      --hgvs \\
-      --hgvsp_use_prediction \\
       --numbers \\
       --vcf \\
       --pick_allele \\
-      --pick_order=canonical,appris,tsl,biotype,ccds,rank,length,ensembl,refseq \\
       --force_overwrite \\
-      --assembly GRCh37 \\
       --use_given_ref \\
+      --assembly ${params.assembly} \\
       --fasta ${reference_fasta} \\
       -i ${input_vcf} \\
       -o splai.vep.vcf
     """
-
-
 }
 
 // process CALCULATE_PS {
