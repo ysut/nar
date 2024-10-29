@@ -44,7 +44,6 @@ process VEP {
       --cache \\
       --offline \\
       --no_stats \\
-      --merged \\
       --gencode_basic \\
       --variant_class \\
       --canonical \\
@@ -57,29 +56,30 @@ process VEP {
       --assembly ${params.assembly} \\
       --fasta ${reference_fasta} \\
       -i ${input_vcf} \\
-      -o splai.vep.vcf
+      -o splai.vep.vcf \\
+      
     """
 }
 
-// process CALCULATE_PS {
-//     container 'utsuno/prioritize:latest'
+process CALCULATE_PS {
+    container 'utsuno/prioritize:latest'
 
-//     input:
-//         tuple path(input_vcf), path(reference_fasta), path(annotation_gtf)
+    input:
+        tuple path(input_vcf), path(reference_fasta), path(annotation_gtf)
 
-//     output:
-//         path 'prioritize.tsv'
+    output:
+        path 'prioritize.tsv'
 
-//     script:
-//     """
-//     conda activate prioritize; \\
-//     prioritize \\
-//     -I ${input_vcf} \\
-//     -R ${reference_fasta} \\
-//     -A ${annotation_gtf} \\
-//     -O prioritize.tsv
-//     """
-// }
+    script:
+    """
+    conda activate prioritize; \\
+    prioritize \\
+    -I ${input_vcf} \\
+    -R ${reference_fasta} \\
+    -A ${annotation_gtf} \\
+    -O prioritize.tsv
+    """
+}
 
 
 workflow {
