@@ -13,7 +13,9 @@ def classifying_canonical(df: pd.DataFrame) -> pd.DataFrame:
     df['is_Canonical'] = False
     # df['IntronDist'] = df[cdot].str.extract('([+-]\d+)')
     df.loc[(df['Consequence'] == 'splice_acceptor_variant') 
-           | (df['Consequence'] == 'splice_donor_variant'),
+           | (df['Consequence'] == 'splice_donor_variant')
+           | (df['Consequence'] == 'splice_acceptor_variant&intron_variant')
+           | (df['Consequence'] == 'splice_donor_variant&intron_variant'),
            'is_Canonical'] = True
     
     return df
@@ -22,22 +24,22 @@ def _extract_affected_region(pos: int, ref: str, alt: str) -> dict:
     """
     Function to extract the POS of the affected region by the variant
     """
-    ref_len = len(ref)
-    alt_len = len(alt)
+    ref_len: int = len(ref)
+    alt_len: int = len(alt)
     
     # Calculate the affected region
     if ref_len > alt_len:
         # Deletion
-        affected_start = pos
-        affected_end = pos + (ref_len - 1)
+        affected_start: int = pos
+        affected_end: int = pos + ref_len - 1
     elif alt_len > ref_len:
         # Insertion
-        affected_start = pos
-        affected_end = pos
+        affected_start: int = pos
+        affected_end: int = pos
     else:
         # Substitution
-        affected_start = pos
-        affected_end = pos + (ref_len - 1)
+        affected_start: int = pos
+        affected_end: int = pos + ref_len - 1
     
     return {'Affected_start_pos': affected_start,
             'Affected_end_pos': affected_end}
@@ -58,13 +60,13 @@ def signed_distance_to_exon_boundary(
     """
     # Check intron variant or not
     for exon in db.children(id=row['ENST_Full'], featuretype='exon'):
-        if exon.start <= row['POS'] <= exon.end:
+        if exon.start <= int(row['POS']) <= exon.end:
             return np.nan # If an exonic variant, return NaN
 
     # Extract parameters
     query_enst = row['ENST_Full']
     strand = row['Strand']
-    variant_position, ref, alt = row['POS'], row['REF'], row['ALT']
+    variant_position, ref, alt = int(row['POS']), row['REF'], row['ALT']
 
     # Check ENST availability (wheher query_enst starts with "ENST")
     if not query_enst.startswith('ENST'):
@@ -109,6 +111,11 @@ def signed_distance_to_exon_boundary(
             closest_sign_e = sign
 
     # Select the closest boundary 
+    try:
+        abs(closest_distance_s) < abs(closest_distance_e)
+    except TypeError:
+        print(boundaries)
+
     if abs(closest_distance_s) < abs(closest_distance_e):
         closest_distance, closest_sign = closest_distance_s, closest_sign_s
     else:
@@ -213,7 +220,7 @@ def extract_splai_result_2(row, genecol: str):
             return info
 
 def fetch_enst_full(row, db: gffutils.interface.FeatureDB):
-    query_region = (f"chr{row['CHROM']}", row['POS'] - 1, row['POS'])
+    query_region = (f"chr{row['CHROM']}", int(row['POS']) - 1, int(row['POS']))
     for t in db.region(region=query_region, featuretype='transcript'):
         if t.id.startswith(row['ENST']):
             return t.id

@@ -95,10 +95,12 @@ def elofs_judge(row):
 # Determine causing NMD or escape NMD
 
 def nmd_judge(row):
-    if row['EXON']:
+    # if row['EXON']:
+    if row['EXON'] != ".":
         max_exon: int = int(row['EXON'].split('/')[1])
         max_intron: int = max_exon - 1
-    elif row['INTRON']:
+    # elif row['INTRON']:
+    elif row['INTRON'] != ".":
         max_intron: int = int(row['INTRON'].split('/')[1])
     else:
         max_intron: int = -1

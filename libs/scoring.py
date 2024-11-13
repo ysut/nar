@@ -78,13 +78,14 @@ class Scoring:
                 return self.scores['non_canon_splai_gte_0.2']
             elif maxsplai <= 0.1:
                 if ((row['SpliceType'] == 'Acceptor_int') | (row['SpliceType'] == 'Donor_int')):
-                    if ((int(row['Int_loc']) <= -21) | (int(row['Int_loc']) >= 7)):
+                    # if ((int(row['Int_loc']) <= -21) | (int(row['Int_loc']) >= 7)):
+                    if ((int(row['IntronDist']) <= -21) | (int(row['IntronDist']) >= 7)):
                         raw_score = self.scores['non_canon_splai_lte_0.1_outside']
                     else:
                         raw_score = self.scores['non_canon_splai_lte_0.1_other']
                 elif ((row['SpliceType'] == 'Acceptor_ex') | (row['SpliceType'] == 'Donor_ex')):
-                    # if row['Consequence'] in bp7_csq:
-                    if row['csq'] in bp7_csq:
+                    if row['Consequence'] in bp7_csq:
+                    # if row['csq'] in bp7_csq:
                         # print('BP7')
                         if ((int(row['ex_up_dist']) >= 1) & (int(row['ex_down_dist']) >= 3)):
                             raw_score = self.scores['non_canon_splai_lte_0.1_outside']
@@ -142,7 +143,7 @@ class Scoring:
 
     def calc_priority_score(self, row):
         # print(row['insilico_screening'] + row['clinvar_screening'])
-        total: int = row['insilico_screening'] + row['clinvar_screening']
+        total: int = int(row['insilico_screening'] + row['clinvar_screening'])
         if total < 0:
             return 0
         else:

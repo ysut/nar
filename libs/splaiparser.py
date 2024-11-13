@@ -3,7 +3,7 @@ import pandas as pd
 import gffutils
 
 def __exits_spliceai_scores(row):
-    if row['MaxSpliceAI'] == 'NA' or row['MaxSpliceAI'] == '.':
+    if row['maxsplai'] == 'NA' or row['maxsplai'] == '.':
         return False
     else:
         return True
