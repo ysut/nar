@@ -1,11 +1,6 @@
 import pandas as pd
 
-bp7_csq: set = {
-    'intron_variant', 'synonymous_variant', 
-    'splice_region_variant&intron_variant', '5_prime_UTR_variant',
-    '3_prime_UTR_variant', 'splice_acceptor_variant&intron_variant',
-    'splice_region_variant&synonymous_variant'
-    }
+bp7_csq: set = {'intron_variant', 'synonymous_variant'}
 
 # scores = {'clinvar_same_pos': 2,                    #1
 #           'clinvar_same_motif': 1,                  #2
@@ -84,14 +79,14 @@ class Scoring:
                     else:
                         raw_score = self.scores['non_canon_splai_lte_0.1_other']
                 elif ((row['SpliceType'] == 'Acceptor_ex') | (row['SpliceType'] == 'Donor_ex')):
-                    if row['Consequence'] in bp7_csq:
-                    # if row['csq'] in bp7_csq:
-                        # print('BP7')
+                    csqs: list = row['Consequence'].split('&')
+                    if not set(csqs).isdisjoint(bp7_csq):
                         if ((int(row['ex_up_dist']) >= 1) & (int(row['ex_down_dist']) >= 3)):
                             raw_score = self.scores['non_canon_splai_lte_0.1_outside']
                         else:
                             raw_score = self.scores['non_canon_splai_lte_0.1_other']
                     else:
+                        # Not in bp7_csq
                         raw_score = self.scores['non_canon_splai_lte_0.1_other']
                 else:
                     raw_score = self.scores['non_canon_splai_lte_0.1_other']
@@ -128,26 +123,37 @@ class Scoring:
     #     else:
     #         return row['insilico_screening'] + row['clinvar_screening']
 
+    # def clinvar_screening(self, row) -> int:
+    #     if row['insilico_screening'] >= 0:
+    #         if row['clinvar_same_pos']:
+    #             return self.scores['clinvar_same_pos']
+    #         else:
+    #             if row['clinvar_same_motif']:
+    #                 return self.scores['clinvar_same_motif']
+    #             else:
+    #                 return self.scores['clinvar_else']
+    #     else:
+    #         return self.scores['clinvar_else']
     def clinvar_screening(self, row) -> int:
-        if row['insilico_screening'] >= 0:
-            if row['clinvar_same_pos']:
-                return self.scores['clinvar_same_pos']
-            else:
-                if row['clinvar_same_motif']:
-                    return self.scores['clinvar_same_motif']
-                else:
-                    return self.scores['clinvar_else']
+        if row['clinvar_same_pos']:
+            return self.scores['clinvar_same_pos']
         else:
-            return self.scores['clinvar_else']
+            if row['clinvar_same_motif']:
+                return self.scores['clinvar_same_motif']
+            else:
+                return self.scores['clinvar_else']
 
 
     def calc_priority_score(self, row):
         # print(row['insilico_screening'] + row['clinvar_screening'])
-        total: int = int(row['insilico_screening'] + row['clinvar_screening'])
-        if total < 0:
-            return 0
+        if row['insilico_screening'] == "Not available":
+            return "Not available"
         else:
-            return total
+            total: int = int(row['insilico_screening'] + row['clinvar_screening'])
+            if total < 0:
+                return 0
+            else:
+                return total
         
 
     def calc_priority_score2(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -15,7 +15,7 @@ from logging import getLogger, config
 import yaml
 parent_directory = os.path.dirname(os.path.dirname('__file__'))
 config_path: str = os.path.join(parent_directory, '../../../config/logging.yaml')
-config_path: str = os.path.join(parent_directory, '../../config/logging.yaml')
+# config_path: str = os.path.join(parent_directory, '../../config/logging.yaml')
 with open(config_path, 'r') as f:
     config.dictConfig(yaml.safe_load(f))
 logger = getLogger(__name__)
@@ -24,8 +24,8 @@ logger = getLogger(__name__)
 # Set the path of CCRs
 autoccr = '../../../Resources/04_CCRs/ccrs.autosomes.v2.20180420.bed.gz'
 xccr = '../../../Resources/04_CCRs/ccrs.xchrom.v2.20180420.bed.gz'
-autoccr = '../../Resources/04_CCRs/ccrs.autosomes.v2.20180420.bed.gz'
-xccr = '../../Resources/04_CCRs/ccrs.xchrom.v2.20180420.bed.gz'
+# autoccr = '../../Resources/04_CCRs/ccrs.autosomes.v2.20180420.bed.gz'
+# xccr = '../../Resources/04_CCRs/ccrs.xchrom.v2.20180420.bed.gz'
 
 # canonlist = '../../Resources/01_CanonicalTranscripts/CanonicalTranscripts.exoncount.tsv'
 # canon = pd.read_table(canonlist, sep='\t', header=0)
@@ -79,7 +79,7 @@ def calc_cds_len_shorten(row):
 
 import re
 elofs = pd.read_table(
-	'../../Resources/02_EstimatedLoFGenes/Final_eLoF_genes_list/Supplementary_Data_Estimated_LoF_genes.tsv', 
+	'../../../Resources/02_EstimatedLoFGenes/Final_eLoF_genes_list/Supplementary_Data_Estimated_LoF_genes.tsv', 
 	usecols=['HGNC_ID'], sep='\t')
 
 elofs_hgnc_ids_with_prefix = elofs['HGNC_ID'].unique().tolist()
@@ -95,12 +95,12 @@ def elofs_judge(row):
 # Determine causing NMD or escape NMD
 
 def nmd_judge(row):
-    # if row['EXON']:
-    if row['EXON'] != ".":
+    if row['EXON']:
+    # if row['EXON'] != ".":
         max_exon: int = int(row['EXON'].split('/')[1])
         max_intron: int = max_exon - 1
-    # elif row['INTRON']:
-    elif row['INTRON'] != ".":
+    elif row['INTRON']:
+    # elif row['INTRON'] != ".":
         max_intron: int = int(row['INTRON'].split('/')[1])
     else:
         max_intron: int = -1

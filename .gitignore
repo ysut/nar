@@ -174,4 +174,5 @@ ycudb*.db
 Resources/
 
 
+__pycache__/
 *.pyc
