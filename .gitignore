@@ -173,4 +173,5 @@ ycudb*.db
 
 Resources/
 
-.DS_Store
+
+*.pyc
