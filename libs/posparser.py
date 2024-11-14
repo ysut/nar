@@ -10,13 +10,17 @@ from liftover import get_lifter
 
 ############ Functions for analysis ############
 def classifying_canonical(df: pd.DataFrame) -> pd.DataFrame:
-    df['is_Canonical'] = False
+    # IntronDist: -2, -1, 1, 2 → Canonical
+
+    df['is_Canonical'] = np.where(df['IntronDist'].isin([-2, -1, 1, 2]), "Yes", "No")
+
+    # df['is_Canonical'] = False
     # df['IntronDist'] = df[cdot].str.extract('([+-]\d+)')
-    df.loc[(df['Consequence'] == 'splice_acceptor_variant') 
-           | (df['Consequence'] == 'splice_donor_variant')
-           | (df['Consequence'] == 'splice_acceptor_variant&intron_variant')
-           | (df['Consequence'] == 'splice_donor_variant&intron_variant'),
-           'is_Canonical'] = True
+    # df.loc[(df['Consequence'] == 'splice_acceptor_variant') 
+    #        | (df['Consequence'] == 'splice_donor_variant')
+    #        | (df['Consequence'] == 'splice_acceptor_variant&intron_variant')
+    #        | (df['Consequence'] == 'splice_donor_variant&intron_variant'),
+    #        'is_Canonical'] = True
     
     return df
     
@@ -152,14 +156,19 @@ def calc_exon_loc(row,
             if enst == query_enst:
                 if r.feature == 'exon':
                     if r.strand == '+':
-                        upd = r.end - query_pos
-                        downd = query_pos - (r.start + 1)
+                        # downd = r.end - query_pos
+                        # upd = query_pos - (r.start + 1)
+                        downd = r.end - query_pos + 1 
+                        upd = query_pos - r.start
                     elif r.strand == '-':
-                        upd = query_pos - (r.start + 1)
-                        downd = r.end - query_pos
+                        # downd = query_pos - (r.start + 1)
+                        # upd = r.end - query_pos
+                        downd = query_pos - r.start
+                        upd = r.end - query_pos + 1
                     else:
                         return 'unk_strand'
                     return f'{upd}:{downd}'
+                    # return f'{downd}:{upd}'
                 else:
                     pass
             else:
@@ -175,10 +184,14 @@ def extract_splicing_region(row) -> str:
         return '[Warning] ENST_unmatch'
 
     else: 
-        if int(row['ex_down_dist']) == 0:
+        # if int(row['ex_down_dist']) == 0:
+        if int(row['ex_up_dist']) == 1:
             return 'ex_acceptor_site'
-        elif int(row['ex_up_dist']) <= 2:
+            # return 'ex_donor_site'
+        # elif int(row['ex_up_dist']) <= 2:
+        elif int(row['ex_down_dist']) <= 3:
             return 'ex_donor_site'
+            # return 'ex_acceptor_site'
         else:
             return 'non_SplicingExonPos'
 
@@ -272,16 +285,21 @@ def calc_ex_int_num(
     
     else:
         return 'unknown'
-            
-
+    
 def select_exon_pos(row):
-    if isinstance(row['ex_up_dist'], str):
-        return row['ex_up_dist']
-    else:
-        if row['ex_up_dist']:
+    try:
+        # ex_up_dist と ex_down_dist を整数にキャストして小さい値を取得
+        if row['ex_up_dist'] and row['ex_down_dist']:
             return min(int(row['ex_up_dist']), int(row['ex_down_dist']))
+        elif row['ex_up_dist']:  # ex_up_dist が存在する場合
+            return int(row['ex_up_dist'])
+        elif row['ex_down_dist']:  # ex_down_dist が存在する場合
+            return int(row['ex_down_dist'])
         else:
             return '[Warning] Unknown_SpliceType'
+    except ValueError:  # キャストできない場合
+        return '[Error] Invalid_Value'
+
 
 def select_donor_acceptor(row):
     """Select Donor site or Acceptor site
@@ -290,26 +308,36 @@ def select_donor_acceptor(row):
                             'IntronDist', 'ex_down_dist', and 'ex_up_dist'.
     Returns:
         str: 'Donor' or 'Acceptor' with 'ex' or 'int'
-    """    
-    if row['exon_pos'] == '[Warning] ENST_unmatch':
-        return '[Warning] ENST_unmatch'
-    else:
-        pass
+    """ 
+
+    if row['IntronDist'] == '[Warning] Invalid ENST ID':
+        return '[Warning] Uncalssified SpliceType'
 
     if isinstance(row['IntronDist'], float):  # Equal to np.nan (exonic variant)
+    # if row['IntronDist'] is None:
+        if row['exon_pos'] == '[Warning] ENST_unmatch':
+            return '[Warning] ENST_unmatch'
+        else:
+            pass
+
         try:
             int(row['ex_down_dist'])
         except TypeError:
             return '[Warning] Unkown exon location'
+        except ValueError:
+            return '[Warning] Unkown exon location'
         else:               
             d = int(row['ex_down_dist'])
             u = int(row['ex_up_dist'])
-            if d < u:
+            # if d < u:
+            if u < d:
                 return 'Acceptor_ex'
-            elif d > u:
+            # elif d > u:
+            elif u > d:
                 return 'Donor_ex'
             else:
                 return 'Center_of_Exon'
+            
     elif int(row['IntronDist']) < 0:
         return 'Acceptor_int'
     elif int(row['IntronDist']) > 0:
@@ -337,19 +365,19 @@ def calc_prc_exon_loc(row):
 
         if (row['Strand'] == '+' 
                 and int(row['ex_up_dist']) <= int(row['ex_down_dist'])):
-            return int(row['exon_pos']) / curt_ex_length * 100
+            return (1- (int(row['exon_pos']) / curt_ex_length)) * 100
         
         elif (row['Strand'] == '-' 
               and int(row['ex_up_dist']) >= int(row['ex_down_dist'])):
-            return int(row['exon_pos']) / curt_ex_length * 100
+            return (1 - (int(row['exon_pos']) / curt_ex_length)) * 100
         
         elif (row['Strand'] == '+' 
               and int(row['ex_up_dist']) > int(row['ex_down_dist'])):
-            return (1 - (int(row['exon_pos']) / curt_ex_length)) * 100
+            return (int(row['exon_pos']) / curt_ex_length) * 100
     
         elif (row['Strand'] == '-' 
               and int(row['ex_up_dist']) < int(row['ex_down_dist'])):
-            return (1 - (int(row['exon_pos']) / curt_ex_length)) * 100
+            return (int(row['exon_pos']) / curt_ex_length) * 100
     
         else:
             return '[Waring] Unexpected conditions'

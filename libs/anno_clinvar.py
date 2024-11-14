@@ -43,50 +43,44 @@ def anno_same_motif_vars(row, tabixfile: pysam.pysam.libctabix.TabixFile):
     query_chr: str = f'{row["CHROM"]}'
     query_pos: int = int(row['POS'])
 
-    ## Fixed code
-    # splai_results: dict = {float(row['DS_AG']): int(row['DP_AG']), 
-    #                        float(row['DS_AL']): int(row['DP_AL']), 
-    #                        float(row['DS_DG']): int(row['DP_DG']), 
-    #                        float(row['DS_DL']): int(row['DP_DL'])}
-    # maxsplai: float = max(splai_results.keys())
-    # maxsplai_pos: int = splai_results[maxsplai]
-    
     # Generate query positions 
-    if (row['SpliceType'] == 'Donor_int' 
-        or row['SpliceType'] == 'Donor_ex'):
-
-        if row['SpliceType'] == 'Donor_int':
-            exonside: int = - int(row['Int_loc']) - 3 
-            intronside: int = - int(row['Int_loc']) + 7
-        else: # row['SpliceType'] == 'Donor_ex' 
-            exonside: int = - int(row['exon_pos']) - 3
-            intronside: int = - int(row['exon_pos']) + 7
-        
+    if row['SpliceType'] == 'Donor_int':
         if row['Strand'] == '+':
-            query_start: int = query_pos + exonside
-            query_end: int = query_pos + intronside
+            query_start: int = query_pos - int(row['IntronDist']) - 2 - 1
+            query_end: int = query_pos - int(row['IntronDist']) + 6
         elif row['Strand'] == '-':
-            query_start: int = query_pos - intronside
-            query_end: int = query_pos - exonside
+            query_start: int = query_pos + int(row['IntronDist']) - 6 - 1
+            query_end: int = query_pos + int(row['IntronDist']) + 2
+        else:
+            return 'unk_Strand'
+
+    elif row['SpliceType'] == 'Donor_ex':
+        if row['Strand'] == '+':
+            query_start: int = query_pos + int(row['exon_pos']) - 3 - 1
+            query_end: int = query_pos + int(row['exon_pos']) + 5
+        elif row['Strand'] == '-':
+            query_start: int = query_pos - int(row['exon_pos']) - 5 - 1
+            query_end: int = query_pos - int(row['exon_pos']) + 3
         else:
             return 'unk_Strand'
     
-    elif (row['SpliceType'] == 'Acceptor_int' 
-          or row['SpliceType'] == 'Acceptor_ex'):
-        
-        if row['SpliceType'] == 'Acceptor_int':
-            exonside: int = int(row['Int_loc']) - 1
-            intronside: int = int(row['Int_loc']) + 21
-        else: # row['SpliceType'] == 'Acceptor_ex'
-            exonside: int = int(row['exon_pos']) - 1 
-            intronside: int = int(row['exon_pos']) + 21 
-            
+    elif row['SpliceType'] == 'Acceptor_int':
         if row['Strand'] == '+':
-            query_start: int = query_pos - intronside
-            query_end: int = query_pos - exonside
+            query_start: int = query_pos + (- int(row['IntronDist'])) - 20 - 1
+            query_end: int = query_pos + (- int(row['IntronDist'])) + 0
         elif row['Strand'] == '-':
-            query_start: int = query_pos + exonside
-            query_end: int = query_pos + intronside
+            query_start: int = query_pos - (- int(row['IntronDist'])) - 0 - 1
+            query_end: int = query_pos - (- int(row['IntronDist'])) + 20
+        else:
+            return 'unk_Strand'
+    
+    elif row['SpliceType'] == 'Acceptor_ex':
+        if row['Strand'] == '+':
+            query_start: int = query_pos - int(row['exon_pos']) - 19 - 1
+            query_end: int = query_pos - int(row['exon_pos']) + 1
+        elif row['Strand'] == '-':
+            query_start: int = query_pos + int(row['exon_pos']) - 1 - 1
+            query_end: int = query_pos + int(row['exon_pos']) + 19
         else:
             return 'unk_Strand'
         

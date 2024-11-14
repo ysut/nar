@@ -14,15 +14,6 @@ def calc_exint_info(row, db, db_intron):
     query_enst = row['ENST_Full'] 
     chrom, pos = f'chr{row["CHROM"]}', int(row['POS'])
     strand = row['Strand']
-
-    ## Strand check
-    # try:
-    #     strand = next(db.children(query_enst, featuretype='transcript')).strand
-    # except StopIteration:
-    #     # print(f'Warning: No strand information -> {row["ENST_Full"]}')
-    #     return 'Warning'
-    # else:
-    #     pass
     
     if strand == '+':
         region: tuple = (chrom, pos-1, pos)
@@ -33,8 +24,6 @@ def calc_exint_info(row, db, db_intron):
         print(f'Warning: unkown strand -> {row["ENST_Full"]}')
         region: tuple = (chrom, pos-1, pos)
 
-    ## Fetch exon or intron information from each GENCODE DBs
-
     # Fixed
     # if ((row['SpliceType'] == 'Donor_ex') | (row['SpliceType'] == 'Acceptor_ex')):
     #     fetched_data = db.children(
@@ -44,7 +33,6 @@ def calc_exint_info(row, db, db_intron):
     #     fetched_data = db_intron.children(
     #         query_enst, limit=region, featuretype='intron')
     #     d = next(fetched_data)
-
 
     # Not Used
     try:
@@ -136,7 +124,6 @@ def calc_exint_info(row, db, db_intron):
                 eEnd = 'unk'
             
     else:
-        # print(f'Warning: Not exon or intron -> {row["ID"]}:{row["ENST_Full"]}')
         return 'Warning'
 
     ## Return results as dict type

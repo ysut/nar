@@ -81,7 +81,7 @@ class Scoring:
                 elif ((row['SpliceType'] == 'Acceptor_ex') | (row['SpliceType'] == 'Donor_ex')):
                     csqs: list = row['Consequence'].split('&')
                     if not set(csqs).isdisjoint(bp7_csq):
-                        if ((int(row['ex_up_dist']) >= 1) & (int(row['ex_down_dist']) >= 3)):
+                        if ((int(row['ex_up_dist']) > 1) & (int(row['ex_down_dist']) > 3)):
                             raw_score = self.scores['non_canon_splai_lte_0.1_outside']
                         else:
                             raw_score = self.scores['non_canon_splai_lte_0.1_other']
