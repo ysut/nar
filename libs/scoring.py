@@ -23,7 +23,8 @@ class Scoring:
         self.scores: dict = ths
 
     def _calc_canon_prescore(self, row) -> int:
-        if float(row['maxsplai']) < 0.1:
+        # if float(row['maxsplai']) < 0.1:
+        if float(row['maxsplai']) <= 0.1:
             return self.scores['canon_splai_lte_0.1']
         elif float(row['maxsplai']) < 0.2:
             return self.scores['canon_splai_bet_0.1_0.2']

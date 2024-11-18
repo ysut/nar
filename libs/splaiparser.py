@@ -119,9 +119,12 @@ def calc_exint_info(row, db, db_intron):
             | ((up > down) & (strand == '-'))):
                 eStart = prevExStart
                 eEnd = prevExEnd
-        else: # center of intron
-                eStart = 'unk'
-                eEnd = 'unk'
+        elif up == down:
+            eStart = f'center_of_intron:{up}'
+            eEnd = f'center_of_intron:{up}'
+        else:
+            eStart = 'unk'
+            eEnd = 'unk'
             
     else:
         return 'Warning'
@@ -303,11 +306,14 @@ def _bp_5prime(thresholds: str, **kwargs) -> int:
     if ((kwargs['ExInt_INFO']['eStart'] == 'unk') 
         | (kwargs['ExInt_INFO']['eEnd'] == 'unk')):
         return 0
+    if ((str(kwargs['ExInt_INFO']['eStart']).startswith('center_of_intron')) 
+        | (str(kwargs['ExInt_INFO']['eEnd']).startswith('center_of_intron'))):
+        return 0
+    
     strand: str = info['strand']
     eStart: int = int(info['eStart'])
     eEnd: int = int(info['eEnd'])
     
-
     if ((strand == '+') 
         & (_is_cryptic_Acp_activation(thresholds, **kwargs))
         & (_filtering_Acp_orientation(**kwargs) == 'PASS')):
@@ -327,6 +333,10 @@ def _bp_3prime(thresholds: str, **kwargs) -> int:
     
     if ((kwargs['ExInt_INFO']['eStart'] == 'unk') 
         | (kwargs['ExInt_INFO']['eEnd'] == 'unk')):
+        return 0
+    
+    if ((str(kwargs['ExInt_INFO']['eStart']).startswith('center_of_intron')) 
+        | (str(kwargs['ExInt_INFO']['eEnd']).startswith('center_of_intron'))):
         return 0
 
     posDG: int = int(kwargs['POS']) + int(kwargs['DP_DG'])
@@ -373,6 +383,10 @@ def _calc_dist_from_exon(**kwargs):
         kwargs['ExInt_INFO']['eEnd']
     except:
         return 0
+    
+    if ((str(kwargs['ExInt_INFO']['eStart']).startswith('center_of_intron')) 
+        | (str(kwargs['ExInt_INFO']['eEnd']).startswith('center_of_intron'))):
+        return int(kwargs['ExInt_INFO']['eStart'].split(':')[1])
     
     if ((kwargs['ExInt_INFO']['eStart'] == 'unk') 
         | (kwargs['ExInt_INFO']['eEnd'] == 'unk')):
@@ -496,8 +510,13 @@ def exon_skipping(row, thresholds):
         or (lost_exon_size is None)):
         return False
     elif ((_varidate_var_pos_50bp(**row) == 'within_50bp')
-          and (lost_exon_size)):            
+          and (lost_exon_size)):
         info = row['ExInt_INFO']
+
+        # When the variant is located in the center of intron, return True
+        if ((info['eEnd'] == 'unk') or (info['eStart'] == 'unk')):
+            return True
+        
         native_exon_length = int(info['eEnd']) - int(info['eStart']) + 1
         if lost_exon_size == native_exon_length:
             return True

@@ -145,6 +145,11 @@ def calc_exon_loc(row,
     query_end: int = int(query_pos)
     query_enst: int = row[enstcolname]
 
+    if row['Ex_or_Int'] == "[Warning] Invalid ENST ID":
+        return '[Warning] Invalid ENST ID:[Warning] Invalid ENST ID'
+    if row['Ex_or_Int'] == "Intronic":
+        return 'Intronic:Intronic'
+
     for r in tabixfile.fetch(query_chr, query_start, query_end, 
                             parser=pysam.asGFF3()):
         
@@ -177,9 +182,13 @@ def calc_exon_loc(row,
     return '[Warning] ENST_unmatch:[Warning] ENST_unmatch'
 
 def extract_splicing_region(row) -> str:
+
     if row['ENST_Full'] == '[Warning] ENST_with_Ver_not_available':
         return '[Warning] Invalid ENST ID'
-    
+    if row['ex_up_dist'] == '[Warning] Invalid ENST ID':
+        return '[Warning] Invalid ENST ID'
+    if row['ex_up_dist'] == 'Intronic':
+        return 'Intronic'
     if row['ex_up_dist'] == '[Warning] ENST_unmatch':
         return '[Warning] ENST_unmatch'
 

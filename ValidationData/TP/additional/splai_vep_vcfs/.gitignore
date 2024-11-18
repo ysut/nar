@@ -1,5 +1,5 @@
 *.vcf
-*.warning.txt
+warning_txt/
 
 *.splai.vep.vcf.pkl
 *.splai.vep.vcf.enst.pkl
