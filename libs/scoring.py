@@ -43,7 +43,9 @@ class Scoring:
             pre_score = self._calc_canon_prescore(row)
             # Frameshift variants
             if row['is_Frameshift']:
-                if row['is_NMD_at_Canon'] == 'Possibly_NMD':
+                if ((row['is_NMD_at_Canon'] == 'Possibly_NMD') 
+                    | (row['loftee'] == 'HC')
+                    | (row['loftee'] == 'OS')):
                     if row['is_eLoF']:
                         raw_score = pre_score + self.scores['frameshift_nmd_eloF']
                     else:
