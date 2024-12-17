@@ -29,7 +29,7 @@ process SPLICEAI {
 
 process VEP {
     container 'betelgeuse:5000/library/utsu/vep:112.2'
-    containerOptions "-u 0 -v ${params.vep_data}:/data"
+    containerOptions "-u 0 -v ${params.vep_data}:/data -v ${params.vep_plugin_resources}:/plugin_resources"
 
     input: 
         tuple path(input_vcf), path(reference_fasta)
@@ -55,32 +55,41 @@ process VEP {
       --use_given_ref \\
       --assembly ${params.assembly} \\
       --fasta ${reference_fasta} \\
+      --plugin LoF,loftee_path:/vep/loftee,human_ancestor_fa:/plugin_resources/loftee/human_ancestor.fa.gz,conservation_file:/plugin_resources/loftee/phylocsf_gerp.sql \\
       -i ${input_vcf} \\
       -o splai.vep.vcf \\
       
     """
 }
 
-process CALCULATE_PS {
-    container 'utsuno/prioritize:latest'
+// process CALCULATE_PS {
+//     container 'utsuno/prioritize:latest'
 
-    input:
-        tuple path(input_vcf), path(reference_fasta), path(annotation_gtf)
+//     input:
+//         tuple path(input_vcf), path(reference_fasta), path(annotation_gtf)
 
-    output:
-        path 'prioritize.tsv'
+//     output:
+//         path 'prioritize.tsv'
 
-    script:
-    """
-    conda activate prioritize; \\
-    prioritize \\
-    -I ${input_vcf} \\
-    -R ${reference_fasta} \\
-    -A ${annotation_gtf} \\
-    -O prioritize.tsv
-    """
-}
+//     script:
+//     """
+//     conda activate prioritize; \\
+//     prioritize \\
+//     -I ${input_vcf} \\
+//     -R ${reference_fasta} \\
+//     -A ${annotation_gtf} \\
+//     -O prioritize.tsv
+//     """
+// }
 
+// workflow.onComplete {
+//       println ""
+//       println "~*~*~*~*~~*~*~*~*~~*~*~*~*~~*~*~*~*~*~*~*~~*~*~*~*~*~*~*~*~"
+//       println "Pipeline completed at: $workflow.complete"
+//       println "Execution time       : $workflow.duration"
+//       println "Execution status     : ${ workflow.success ? 'OK' : 'failed' }"
+//       println "~*~*~*~*~~*~*~*~*~~*~*~*~*~~*~*~*~*~*~*~*~~*~*~*~*~*~*~*~*~"
+// }
 
 workflow {
     Channel.fromPath(params.input)
@@ -89,13 +98,4 @@ workflow {
       | map { it -> tuple(it, "${params.reference_fasta}") }
       | VEP
       | view()
-}
-
-workflow.onComplete {
-      println ""
-      println "~*~*~*~*~~*~*~*~*~~*~*~*~*~~*~*~*~*~*~*~*~~*~*~*~*~*~*~*~*~"
-      println "Pipeline completed at: $workflow.complete"
-      println "Execution time       : $workflow.duration"
-      println "Execution status     : ${ workflow.success ? 'OK' : 'failed' }"
-      println "~*~*~*~*~~*~*~*~*~~*~*~*~*~~*~*~*~*~*~*~*~~*~*~*~*~*~*~*~*~"
 }
