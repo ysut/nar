@@ -55,6 +55,7 @@ process VEP {
       --use_given_ref \\
       --assembly ${params.assembly} \\
       --fasta ${reference_fasta} \\
+      --plugin MaxEntScan,/plugin_resources/maxentscan/fordownload \\
       --plugin LoF,loftee_path:/vep/loftee,human_ancestor_fa:/plugin_resources/loftee/human_ancestor.fa.gz,conservation_file:/plugin_resources/loftee/phylocsf_gerp.sql \\
       -i ${input_vcf} \\
       -o splai.vep.vcf \\
