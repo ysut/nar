@@ -146,7 +146,7 @@ class Scoring:
             else:
                 return self.scores['clinvar_else']
 
-
+    
     def calc_priority_score(self, row):
         # print(row['insilico_screening'] + row['clinvar_screening'])
         if row['insilico_screening'] == "Not available":
