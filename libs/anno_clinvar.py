@@ -1,9 +1,9 @@
-from pysam import VariantFile
+import pysam
 
-def remove_square_brackets(s: str) -> str:
+def __remove_square_brackets(s: str) -> str:
     return s.replace("[", "").replace("]", "")
 
-def anno_same_pos_vars(row, cln_bcf: VariantFile) -> str:
+def anno_same_pos_vars(row, cln_bcf: pysam.VariantFile) -> str:
     query_chr: str = f"{row['CHROM']}"
     query_pos: int = int(row['POS'])
     query_ref: str = row['REF']
@@ -36,7 +36,7 @@ def anno_same_pos_vars(row, cln_bcf: VariantFile) -> str:
     if samepos == []:
         return "No_ClinVar_info_found"
     else:
-        return remove_square_brackets(str(samepos))
+        return __remove_square_brackets(str(samepos))
 
 
 def _generate_query_pos(row) -> tuple:
@@ -83,12 +83,13 @@ def _generate_query_pos(row) -> tuple:
             return 'unk_Strand',
         
     else:
-        return 'unk_SpliceType'
+        return 'unk_SpliceType',
     
     return str(row['CHROM']), query_start, query_end
 
-def anno_same_motif_vars(row, cln_bcf: VariantFile) -> str:
+def anno_same_motif_vars(row, cln_bcf: pysam.VariantFile) -> str:
     region: tuple = _generate_query_pos(row)
+    # print(f"Query region: {region[0]}")
 
     if region[0] == 'unk_Strand':
         return 'unk_Strand'
@@ -101,14 +102,20 @@ def anno_same_motif_vars(row, cln_bcf: VariantFile) -> str:
     samemotifs = []
     while 1:
         try:
-            clinvar = next(recs)
+            rec = next(recs)
         except StopIteration:
             break
         else:
-            registered_var = f'{clinvar[7]}_{clinvar[0]}:{clinvar[1]}'
-            samemotifs.append(registered_var)
+            if rec.alts is None:
+                rec_alt: str = "."
+            else:
+                rec_alt: str = rec.alts[0]
+
+            registered_var = f"{rec.contig}-{rec.pos}-{rec.ref}-{rec_alt}"
+            clnsigs: list = [x for x in rec.info["CLNSIG"]]
+            samemotifs.append(f"{registered_var}_{clnsigs}")
 
     if samemotifs == []:
         return "No_ClinVar_info_found"
     else:
-        return remove_square_brackets(str(samemotifs))
+        return __remove_square_brackets(str(samemotifs))
