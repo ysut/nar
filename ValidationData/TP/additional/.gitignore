@@ -15,3 +15,5 @@ all_DM_chr1-22.splai.vep.nondel.vcf.enst.scored.pkl
 allchr.gnomad.splai.vep.vcf.enst.prescore.hgnconly.pkl
 
 *.pkl
+
+*log.optimal.txt

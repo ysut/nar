@@ -32,3 +32,16 @@ INFO: Pandarallel will use standard multiprocessing data transfer (pipe) to tran
 2024/12/26 12:23:04 [INFO   ] (__main__) - Processed solution 25: AUC: 0.9510800573
 2024/12/26 12:23:08 [INFO   ] (__main__) - Processed solution 26: AUC: 0.9510800573
 2024/12/26 12:23:12 [INFO   ] (__main__) - Processed solution 27: AUC: 0.9510800573
+2024/12/26 12:23:16 [INFO   ] (__main__) - Processed solution 28: AUC: 0.9510800573
+2024/12/26 12:23:20 [INFO   ] (__main__) - Processed solution 29: AUC: 0.9510800573
+2024/12/26 12:23:24 [INFO   ] (__main__) - Processed solution 30: AUC: 0.9510800573
+2024/12/26 12:23:28 [INFO   ] (__main__) - Processed solution 31: AUC: 0.9510800573
+2024/12/26 12:23:32 [INFO   ] (__main__) - Processed solution 32: AUC: 0.9514162151
+2024/12/26 12:23:36 [INFO   ] (__main__) - Processed solution 33: AUC: 0.9510800573
+2024/12/26 12:23:40 [INFO   ] (__main__) - Processed solution 34: AUC: 0.9514985279
+2024/12/26 12:23:43 [INFO   ] (__main__) - Processed solution 35: AUC: 0.9514985279
+2024/12/26 12:23:47 [INFO   ] (__main__) - Processed solution 36: AUC: 0.9514985279
+2024/12/26 12:23:51 [INFO   ] (__main__) - Processed solution 37: AUC: 0.9527558649
+2024/12/26 12:23:55 [INFO   ] (__main__) - Processed solution 38: AUC: 0.9515033792
+2024/12/26 12:23:59 [INFO   ] (__main__) - Processed solution 39: AUC: 0.9527558649
+2024/12/26 12:24:03 [INFO   ] (__main__) - Processed solution 40: AUC: 0.9514985279
