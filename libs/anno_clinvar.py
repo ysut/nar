@@ -3,6 +3,9 @@ import pysam
 def __remove_square_brackets(s: str) -> str:
     return s.replace("[", "").replace("]", "")
 
+def __remove_quotations(s: str) -> str:
+    return s.replace("'", "").replace('"', '')
+
 def anno_same_pos_vars(row, cln_bcf: pysam.VariantFile) -> str:
     query_chr: str = f"{row['CHROM']}"
     query_pos: int = int(row['POS'])
@@ -118,4 +121,11 @@ def anno_same_motif_vars(row, cln_bcf: pysam.VariantFile) -> str:
     if samemotifs == []:
         return "No_ClinVar_info_found"
     else:
-        return __remove_square_brackets(str(samemotifs))
+        return __remove_quotations(__remove_square_brackets(str(samemotifs)))
+
+
+def extract_same_motif_clinsigs(row) -> list:
+    if row == "No_ClinVar_info_found":
+        return ["No_ClinVar_info_found"]
+    else:
+        return [var_clinsig.split(':')[1] for var_clinsig in row.split(', ')]
