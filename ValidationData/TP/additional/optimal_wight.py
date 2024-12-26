@@ -503,15 +503,15 @@ for i, solution in enumerate(all_solutions):
     # tp_train['PriorityScore'] = tp_train.parallel_apply(scoring.calc_priority_score, axis=1)
     # tp_train = scoring.calc_priority_score(tp_train)
     tp_train = tp_train[tp_train['insilico_screening'] != 'Not available']
-    tp_train['PriorityScore'] = tp_train['insilico_screening'] + tp_train['clinvar_screening']
-    
+    tp_train['PriorityScore'] = tp_train.parallel_apply(scoring.calc_priority_score, axis=1)
 
     tn_train['insilico_screening'] = tn_train.parallel_apply(scoring.insilico_screening, axis=1)
     tn_train['clinvar_screening'] = tn_train.parallel_apply(scoring.clinvar_screening, axis=1)
     # tn_train['PriorityScore'] = tn_train.parallel_apply(scoring.calc_priority_score, axis=1)
     # tn_train = scoring.calc_priority_score(tn_train)
     tn_train = tn_train[tn_train['insilico_screening'] != 'Not available']
-    tn_train['PriorityScore'] = tn_train['insilico_screening'] + tn_train['clinvar_screening']
+    # tn_train['PriorityScore'] = tn_train['insilico_screening'] + tn_train['clinvar_screening']
+    tn_train['PriorityScore'] = tn_train.parallel_apply(scoring.calc_priority_score, axis=1)
 
     # Extract the columns needed
     tp_train = tp_train[['variant_id', 'LABEL', 'PriorityScore', 'maxsplai']]
@@ -546,7 +546,7 @@ for i, solution in enumerate(all_solutions):
     )
     if i % 50 == 0:
         logger.info(f"###  Processed {i} solutions  ###")
-    logger.info(f"Processed solution {i+1}: AUC: {auc1:.10f}")
+    # logger.info(f"Processed solution {i+1}: AUC: {auc1:.10f}")
     
     if auc1 > buf:
         buf = auc1

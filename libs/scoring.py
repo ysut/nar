@@ -98,8 +98,8 @@ class Scoring:
     
         # Calibrate minus scores to 0
 
-        if raw_score < 0:
-            raw_score = 0
+        # if raw_score < 0:
+        #     raw_score = 0
 
         return raw_score
 

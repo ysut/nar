@@ -16,4 +16,4 @@ allchr.gnomad.splai.vep.vcf.enst.prescore.hgnconly.pkl
 
 *.pkl
 
-*log.optimal.txt
+log.optimal.txt
