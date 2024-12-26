@@ -189,7 +189,7 @@ df_gnomad['variant_id'] = df_gnomad['CHROM'].astype(str) + '-' + df_gnomad['POS'
 tp = df_spl.copy()
 
 tn = df_gnomad.copy()
-tn = df_non_spl.copy()
+# tn = df_non_spl.copy()
 
 
 ## Exclude non-ORF variants
@@ -467,10 +467,33 @@ import pickle
 all_solutions = pickle.load(open('all_solutions.pkl', 'rb'))
 
 frac = 0.8
-random_state = 13
+random_state = 16
 
 results = []
 buf: float = 0.980
+
+# prepare the results
+# tp['is_Canonical'].replace({True: "Yes", False: "No"}, inplace=True)
+# tn['is_Canonical'].replace({True: "Yes", False: "No"}, inplace=True)
+
+print(f"TP: {len(tp)}, TN: {len(tn)}")
+tp = tp[tp['ENST_Full'] != "[Warning] ENST_with_Ver_not_available"]
+tn = tn[tn['ENST_Full'] != "[Warning] ENST_with_Ver_not_available"]
+tp = tp[tp['maxsplai'] != "NA"]
+tn = tn[tn['maxsplai'] != "NA"]
+print(f"Filtered out [Warning] ENST_with_Ver_not_available, TP: {len(tp)}, TN: {len(tn)}")
+
+# Split the data into training and test sets
+tp_train = tp.sample(frac=frac, random_state=random_state)
+tp_test = tp.drop(tp_train.index)
+tn_train = tn.sample(frac=frac, random_state=random_state)
+tn_test = tn.drop(tn_train.index)
+
+# Save the dataframes as pickle files
+tp_train.to_pickle(f'train_test_pkls/tp_prescore_train_{random_state}.pkl')
+tp_test.to_pickle(f'train_test_pkls/tp_prescore_test_{random_state}.pkl')
+tn_train.to_pickle(f'train_test_pkls/tn_prescore_train_{random_state}.pkl')
+tn_test.to_pickle(f'train_test_pkls/tn_prescore_test_{random_state}.pkl')
 
 for i, solution in enumerate(all_solutions):
     # if i < 2000:
@@ -546,7 +569,7 @@ for i, solution in enumerate(all_solutions):
     )
     if i % 50 == 0:
         logger.info(f"###  Processed {i} solutions  ###")
-    # logger.info(f"Processed solution {i+1}: AUC: {auc1:.10f}")
+    logger.info(f"Processed solution {i+1}: AUC: {auc1:.10f}")
     
     if auc1 > buf:
         buf = auc1
