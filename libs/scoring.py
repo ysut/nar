@@ -137,15 +137,28 @@ class Scoring:
     #                 return self.scores['clinvar_else']
     #     else:
     #         return self.scores['clinvar_else']
-    def clinvar_screening(self, row) -> int:
-        if row['clinvar_same_pos']:
-            return self.scores['clinvar_same_pos']
-        else:
-            if row['clinvar_same_motif']:
-                return self.scores['clinvar_same_motif']
-            else:
-                return self.scores['clinvar_else']
+    # def clinvar_screening(self, row) -> int:
+    #     if row['clinvar_same_pos']:
+    #         return self.scores['clinvar_same_pos']
+    #     else:
+    #         if row['clinvar_same_motif']:
+    #             return self.scores['clinvar_same_motif']
+    #         else:
+    #             return self.scores['clinvar_else']
 
+    def clinvar_screening(self, row) -> int:
+        if row['clinvar_same_pos'] in ['Benign', 'Likely_benign', 'Benign/Likely_benign']:
+            return self.scores['clinvar_blb']
+        else:
+            if row['clinvar_same_pos'] in ['Pathogenic', 'Likely_pathogenic', 'Pathogenic/Likely_pathogenic']:
+                return self.scores['clinvar_same_pos']
+            else:
+                if 'Pathogenic' in row['same_motif_clinsigs']:
+                    return self.scores['clinvar_same_motif']
+                elif 'pathogenic' in row['same_motif_clinsigs']:
+                    return self.scores['clinvar_same_motif']
+                else:
+                    return self.scores['clinvar_else']
     
     def calc_priority_score(self, row):
         # print(row['insilico_screening'] + row['clinvar_screening'])
@@ -162,3 +175,5 @@ class Scoring:
     def calc_priority_score2(self, df: pd.DataFrame) -> pd.DataFrame:
         df['PriorityScore'] = df['insilico_screening'] + df['clinvar_screening']
         return df
+    
+    

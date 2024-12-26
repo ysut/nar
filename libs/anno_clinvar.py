@@ -116,7 +116,7 @@ def anno_same_motif_vars(row, cln_bcf: pysam.VariantFile) -> str:
 
             registered_var = f"{rec.contig}-{rec.pos}-{rec.ref}-{rec_alt}"
             clnsigs: list = [x for x in rec.info["CLNSIG"]]
-            samemotifs.append(f"{registered_var}_{clnsigs}")
+            samemotifs.append(f"{registered_var}:{clnsigs}")
 
     if samemotifs == []:
         return "No_ClinVar_info_found"
@@ -127,5 +127,8 @@ def anno_same_motif_vars(row, cln_bcf: pysam.VariantFile) -> str:
 def extract_same_motif_clinsigs(row) -> list:
     if row == "No_ClinVar_info_found":
         return ["No_ClinVar_info_found"]
+    elif row.startswith('unk'):
+        return ["unk_Strand_or_SpliceType"]
     else:
+        # print(row)
         return [var_clinsig.split(':')[1] for var_clinsig in row.split(', ')]
