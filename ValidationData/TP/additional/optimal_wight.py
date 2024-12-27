@@ -470,30 +470,7 @@ frac = 0.8
 random_state = 16
 
 results = []
-buf: float = 0.980
-
-# prepare the results
-# tp['is_Canonical'].replace({True: "Yes", False: "No"}, inplace=True)
-# tn['is_Canonical'].replace({True: "Yes", False: "No"}, inplace=True)
-
-print(f"TP: {len(tp)}, TN: {len(tn)}")
-tp = tp[tp['ENST_Full'] != "[Warning] ENST_with_Ver_not_available"]
-tn = tn[tn['ENST_Full'] != "[Warning] ENST_with_Ver_not_available"]
-tp = tp[tp['maxsplai'] != "NA"]
-tn = tn[tn['maxsplai'] != "NA"]
-print(f"Filtered out [Warning] ENST_with_Ver_not_available, TP: {len(tp)}, TN: {len(tn)}")
-
-# Split the data into training and test sets
-tp_train = tp.sample(frac=frac, random_state=random_state)
-tp_test = tp.drop(tp_train.index)
-tn_train = tn.sample(frac=frac, random_state=random_state)
-tn_test = tn.drop(tn_train.index)
-
-# Save the dataframes as pickle files
-tp_train.to_pickle(f'train_test_pkls/tp_prescore_train_{random_state}.pkl')
-tp_test.to_pickle(f'train_test_pkls/tp_prescore_test_{random_state}.pkl')
-tn_train.to_pickle(f'train_test_pkls/tn_prescore_train_{random_state}.pkl')
-tn_test.to_pickle(f'train_test_pkls/tn_prescore_test_{random_state}.pkl')
+buf: float = 0.984
 
 for i, solution in enumerate(all_solutions):
     # if i < 2000:
@@ -526,15 +503,18 @@ for i, solution in enumerate(all_solutions):
     # tp_train['PriorityScore'] = tp_train.parallel_apply(scoring.calc_priority_score, axis=1)
     # tp_train = scoring.calc_priority_score(tp_train)
     tp_train = tp_train[tp_train['insilico_screening'] != 'Not available']
-    tp_train['PriorityScore'] = tp_train.parallel_apply(scoring.calc_priority_score, axis=1)
+    tp_train['PriorityScore'] = tp_train['insilico_screening'] + tp_train['clinvar_screening']
+    # If PriorityScore under 0, set it to 0
+    tp_train['PriorityScore'] = tp_train['PriorityScore'].apply(lambda x: 0 if x < 0 else x)
 
     tn_train['insilico_screening'] = tn_train.parallel_apply(scoring.insilico_screening, axis=1)
     tn_train['clinvar_screening'] = tn_train.parallel_apply(scoring.clinvar_screening, axis=1)
     # tn_train['PriorityScore'] = tn_train.parallel_apply(scoring.calc_priority_score, axis=1)
     # tn_train = scoring.calc_priority_score(tn_train)
     tn_train = tn_train[tn_train['insilico_screening'] != 'Not available']
-    # tn_train['PriorityScore'] = tn_train['insilico_screening'] + tn_train['clinvar_screening']
-    tn_train['PriorityScore'] = tn_train.parallel_apply(scoring.calc_priority_score, axis=1)
+    tn_train['PriorityScore'] = tn_train['insilico_screening'] + tn_train['clinvar_screening']
+    # If PriorityScore under 0, set it to 0
+    tn_train['PriorityScore'] = tn_train['PriorityScore'].apply(lambda x: 0 if x < 0 else x)
 
     # Extract the columns needed
     tp_train = tp_train[['variant_id', 'LABEL', 'PriorityScore', 'maxsplai']]
@@ -563,24 +543,25 @@ for i, solution in enumerate(all_solutions):
          's3': solution['s3'], 's4': solution['s4'], 's5': solution['s5'], 
          's6': solution['s6'], 's7': solution['s7'], 's8': solution['s8'], 
          's9': solution['s9'], 's10': solution['s10'], 's11': solution['s11'], 
-         's12': solution['s12'], 's13': solution['s13'], 's14': solution['s14'],
+         's12': solution['s12'], 's13': solution['s13'], 's14': solution['s14'], 's15': solution['s15'],
          'auROC': f"{auc1:.10f}, '95% Confidence Interval': {cilower1:.12f}-{ciupper1:.12f}"
         }
     )
+    # logger.info(f"Processed solution {i+1}: AUC: {auc1:.10f}")
     if i % 50 == 0:
-        logger.info(f"###  Processed {i} solutions  ###")
-    logger.info(f"Processed solution {i+1}: AUC: {auc1:.10f}")
+        print(f"###  Processed {i} solutions  ###")
     
     if auc1 > buf:
         buf = auc1
-        logger.info(f"\n===== New best AUC: {auc1:.10f} with solution {i+1} =======")
-        logger.info(f"New best solution {i}: {solution} \n")
+        print(f"\n===== New best AUC: {auc1:.10f} with solution {i+1} =======")
+        print(f"New best solution {i}: {solution} \n")
         predictions_sp = np.array(data['maxsplai'])
         auc2, var2 = delong_roc_variance(ground_truth, predictions_sp)
         cilower2, ciupper2 = compute_auc_confidence_interval(auc2, var2)
         p_value_log = delong_roc_test(ground_truth, predictions_fw, predictions_sp)
-        logger.info(f"AUC - Framework (95%CI): {auc1:.3f} [{cilower1:.4f}-{ciupper1:.4f}]")
-        logger.info(f"AUC - SpliceAI (95%CI) : {auc2:.3f} [{cilower2:.4f}-{ciupper2:.4f}]")
-        logger.info(f"p-value (DeLong Test)  : {10**p_value_log[0][0]:.2e}\n")
-        logger.info("===========================================================")
-        
+        print(f"AUC - Framework (95%CI): {auc1:.3f} [{cilower1:.4f}-{ciupper1:.4f}]")
+        print(f"AUC - SpliceAI (95%CI) : {auc2:.3f} [{cilower2:.4f}-{ciupper2:.4f}]")
+        print(f"p-value (DeLong Test)  : {10**p_value_log[0][0]:.2e}\n")
+        print("===========================================================")
+
+# 1800から続き
