@@ -43,6 +43,7 @@ class Scoring:
             pre_score = self._calc_canon_prescore(row)
             # Frameshift variants
             if row['is_Frameshift']:
+                # print(f"Frameshift: {row['is_Frameshift']}")
                 if ((row['is_NMD_at_Canon'] == 'Possibly_NMD') 
                     | (row['loftee'] == 'HC')
                     | (row['loftee'] == 'OS')):
@@ -147,10 +148,11 @@ class Scoring:
     #             return self.scores['clinvar_else']
 
     def clinvar_screening(self, row) -> int:
-        if row['clinvar_same_pos'] in ['Benign', 'Likely_benign', 'Benign/Likely_benign']:
+        cln_same_pos = row['clinvar_same_pos'].replace("'", "")
+        if cln_same_pos in ['Benign', 'Likely_benign', 'Benign/Likely_benign']:
             return self.scores['clinvar_blb']
         else:
-            if row['clinvar_same_pos'] in ['Pathogenic', 'Likely_pathogenic', 'Pathogenic/Likely_pathogenic']:
+            if cln_same_pos in ['Pathogenic', 'Likely_pathogenic', 'Pathogenic/Likely_pathogenic']:
                 return self.scores['clinvar_same_pos']
             else:
                 if 'Pathogenic' in row['same_motif_clinsigs']:
