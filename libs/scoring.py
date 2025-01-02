@@ -19,19 +19,22 @@ bp7_csq: set = {'intron_variant', 'synonymous_variant'}
 #           }
 
 class Scoring:
-    def __init__(self, ths: dict) -> None: 
-        self.scores: dict = ths
+    def __init__(self) -> None: 
+        self.scores: dict = {}
 
-    def _calc_canon_prescore(self, row) -> int:
+    def recal_scores_in_canon(self, row) -> str:
         # if float(row['maxsplai']) < 0.1:
-        if float(row['maxsplai']) <= 0.1:
-            return self.scores['canon_splai_lte_0.1']
-        elif float(row['maxsplai']) < 0.2:
-            return self.scores['canon_splai_bet_0.1_0.2']
+        if row['is_Canonical'] == "Yes":
+            if float(row['maxsplai']) <= 0.1:
+                return "s12"
+            elif float(row['maxsplai']) < 0.2:
+                return "s13"
+            else:
+                return "s14"
         else:
-            return self.scores['canon_splai_gte_0.2']
+            return "s0"
 
-    def insilico_screening(self, row) -> int:
+    def insilico_screening(self, row) -> str:
         #0. No score
         try:
             maxsplai = float(row['maxsplai'])
@@ -40,7 +43,7 @@ class Scoring:
 
         #1. Canonical
         if row['is_Canonical'] == "Yes":
-            pre_score = self._calc_canon_prescore(row)
+            pre_score = self.recal_scores_in_canon(row)
             # Frameshift variants
             if row['is_Frameshift']:
                 # print(f"Frameshift: {row['is_Frameshift']}")
@@ -48,54 +51,54 @@ class Scoring:
                     | (row['loftee'] == 'HC')
                     | (row['loftee'] == 'OS')):
                     if row['is_eLoF']:
-                        raw_score = pre_score + self.scores['frameshift_nmd_eloF']
+                        raw_score = "s10"
                     else:
-                        raw_score = pre_score + self.scores['frameshift_nmd_not_eloF']
+                        raw_score = "s11"
                 else:
                     if ((float(row['skipped_ccrs']) >= 95) | (float(row['deleted_ccrs']) >= 95)):
-                        raw_score = pre_score + self.scores['canon_strong']
+                        raw_score = "s8"
                     else:
                         if row['is_10%_truncation']:
-                            raw_score = pre_score + self.scores['canon_strong']
+                            raw_score = "s8"
                         else:
-                            raw_score = pre_score + self.scores['canon_moderate']
+                            raw_score = "s9"
             # In-frame
             else:
                 if ((float(row['skipped_ccrs']) >= 95) | (float(row['deleted_ccrs']) >= 95)):
-                    raw_score = pre_score + self.scores['canon_strong']
+                    raw_score = "s8"
                 else:
                     if row['is_10%_truncation']:
                         # print('≥10% Truncation')
-                        raw_score = pre_score + self.scores['canon_strong']
+                        raw_score = "s8"
                     else:
                         # print(f"≤10% Truncation {self.scores['canon_moderate']}")
-                        raw_score = pre_score + self.scores['canon_moderate']
+                        raw_score = "s9"
         
         #2. Non-canonical
         else:
             if maxsplai >= 0.2:
-                return self.scores['non_canon_splai_gte_0.2']
+                return "s7"
             elif maxsplai <= 0.1:
                 if ((row['SpliceType'] == 'Acceptor_int') | (row['SpliceType'] == 'Donor_int')):
                     # if ((int(row['Int_loc']) <= -21) | (int(row['Int_loc']) >= 7)):
                     if ((int(row['IntronDist']) <= -21) | (int(row['IntronDist']) >= 7)):
-                        raw_score = self.scores['non_canon_splai_lte_0.1_outside']
+                        raw_score = "s4"
                     else:
-                        raw_score = self.scores['non_canon_splai_lte_0.1_other']
+                        raw_score = "s5"
                 elif ((row['SpliceType'] == 'Acceptor_ex') | (row['SpliceType'] == 'Donor_ex')):
                     csqs: list = row['Consequence'].split('&')
                     if not set(csqs).isdisjoint(bp7_csq):
                         if ((int(row['ex_up_dist']) > 1) & (int(row['ex_down_dist']) > 3)):
-                            raw_score = self.scores['non_canon_splai_lte_0.1_outside']
+                            raw_score = "s4"
                         else:
-                            raw_score = self.scores['non_canon_splai_lte_0.1_other']
+                            raw_score = "s5"
                     else:
                         # Not in bp7_csq
-                        raw_score = self.scores['non_canon_splai_lte_0.1_other']
+                        raw_score = "s5"
                 else:
-                    raw_score = self.scores['non_canon_splai_lte_0.1_other']
+                    raw_score = "s5"
             else:
-                raw_score = self.scores['non_canon_splai_bet_0.1_0.2']
+                raw_score = "s6"
     
         # Calibrate minus scores to 0
 
@@ -105,7 +108,7 @@ class Scoring:
         return raw_score
 
 
-    # def clinvar_screening(self, row) -> int:
+    # def clinvar_screening(self, row) -> str:
     #     if str(row['insilico_screening']).item() == "Not available":
     #         return "Not available"
     #     else:
@@ -127,7 +130,7 @@ class Scoring:
     #     else:
     #         return row['insilico_screening'] + row['clinvar_screening']
 
-    # def clinvar_screening(self, row) -> int:
+    # def clinvar_screening(self, row) -> str:
     #     if row['insilico_screening'] >= 0:
     #         if row['clinvar_same_pos']:
     #             return self.scores['clinvar_same_pos']
@@ -138,7 +141,7 @@ class Scoring:
     #                 return self.scores['clinvar_else']
     #     else:
     #         return self.scores['clinvar_else']
-    # def clinvar_screening(self, row) -> int:
+    # def clinvar_screening(self, row) -> str:
     #     if row['clinvar_same_pos']:
     #         return self.scores['clinvar_same_pos']
     #     else:
@@ -147,20 +150,20 @@ class Scoring:
     #         else:
     #             return self.scores['clinvar_else']
 
-    def clinvar_screening(self, row) -> int:
+    def clinvar_screening(self, row) -> str:
         cln_same_pos = row['clinvar_same_pos'].replace("'", "")
         if cln_same_pos in ['Benign', 'Likely_benign', 'Benign/Likely_benign']:
-            return self.scores['clinvar_blb']
+            return "s15"
         else:
             if cln_same_pos in ['Pathogenic', 'Likely_pathogenic', 'Pathogenic/Likely_pathogenic']:
-                return self.scores['clinvar_same_pos']
+                return "s1"
             else:
                 if 'Pathogenic' in row['same_motif_clinsigs']:
-                    return self.scores['clinvar_same_motif']
+                    return "s2"
                 elif 'pathogenic' in row['same_motif_clinsigs']:
-                    return self.scores['clinvar_same_motif']
+                    return "S2"
                 else:
-                    return self.scores['clinvar_else']
+                    return "s3"
     
     def calc_priority_score(self, row):
         # print(row['insilico_screening'] + row['clinvar_screening'])

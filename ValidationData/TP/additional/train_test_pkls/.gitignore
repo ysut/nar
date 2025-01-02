@@ -1,1 +1,4 @@
 *.pkl
+*.vcf
+gnomad_splai_maxent_pango_sq/
+hgmd_splai_maxent_pango_sq/

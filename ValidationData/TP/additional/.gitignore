@@ -14,6 +14,12 @@ warning_txt/
 all_DM_chr1-22.splai.vep.nondel.vcf.enst.scored.pkl
 allchr.gnomad.splai.vep.vcf.enst.prescore.hgnconly.pkl
 
-*.pkl
+ValidationData/TP/additional/variant_data_set_vcfs/*.pkl
+
+variant_data_set_vcfs/hgmd_splai_maxent_pango_sq/*.pkl
+variant_data_set_vcfs/gnomad_splai_maxent_pango_sq/*.pkl
+variant_data_set_vcfs/hgmd_all.prescore.onlyhgnc.pkl
 
 log.optimal.txt
+
+all_solutions_*.pkl
