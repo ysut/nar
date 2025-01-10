@@ -41,25 +41,29 @@ def calc_cds_len(row, db) -> int:
     
     return cds_length
 
-def calc_cds_len_shorten(row):
-    if row['Exon_skipping']:
-        skipped = float(row['Size_skipped_exon'])
+def calc_cds_len_shorten(row) -> bool:
+    if row['Exon_skipping'] == "Cannot predict splicing event":
+        return False
+    elif row['Part_ExDel'] == "Cannot predict splicing event":
+        return False
+    elif row['Exon_skipping']:
+        skipped = int(row['Size_skipped_exon'])
     elif row['Part_ExDel']:
-        deleted = float(row['Size_Part_ExDel'])
+        deleted = int(row['Size_Part_ExDel'])
     else:
         return False
     
     try:
         skipped
     except NameError:
-        skipped = np.nan
+        skipped = 0
     else:
         pass
 
     try:
         deleted
     except NameError:
-        deleted = np.nan
+        deleted = 0
     else:
         pass
     
@@ -67,7 +71,7 @@ def calc_cds_len_shorten(row):
         logger.debug(f"Warning: CDS_Length == 0 in {row['variant_id']}")
         return False
     
-    shorten_len = skipped + deleted
+    shorten_len: int = skipped + deleted
     shorten_parcent = shorten_len / float(row['CDS_Length'])
     if shorten_parcent > 0.1:
         return True
