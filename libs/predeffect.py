@@ -83,7 +83,8 @@ def calc_cds_len_shorten(row) -> bool:
 
 import re
 elofs = pd.read_table(
-	'../../../Resources/02_EstimatedLoFGenes/Final_eLoF_genes_list/Supplementary_Data_Estimated_LoF_genes.tsv', 
+	# '../../../Resources/02_EstimatedLoFGenes/Final_eLoF_genes_list/Supplementary_Data_Estimated_LoF_genes.tsv', 
+    '../../../Resources/02_EstimatedLoFGenes/Final_eLoF_genes_list/Supplementary_Data_eLoF_genes.tsv', 
 	usecols=['HGNC_ID'], sep='\t')
 
 elofs_hgnc_ids_with_prefix = elofs['HGNC_ID'].unique().tolist()
